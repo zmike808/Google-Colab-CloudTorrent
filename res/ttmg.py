@@ -374,49 +374,6 @@ def textAn(TEXT, ty='d'):
             textcover = str(len(TEXT)*0.55)
             return display(HTML('''<style>@import url(https://fonts.googleapis.com/css?family=Anonymous+Pro);.line-1{font-family: 'Anonymous Pro', monospace;    position: relative;   border-right: 1px solid;    font-size: 15px;   white-space: nowrap;    overflow: hidden;    }.anim-typewriter{  animation: typewriter 0.4s steps(44) 0.2s 1 normal both,             blinkTextCursor 600ms steps(44) infinite normal;}@keyframes typewriter{  from{width: 0;}  to{width: '''+textcover+'''em;}}@keyframes blinkTextCursor{  from{border-right:2px;}  to{border-right-color: transparent;}}</style><div class="line-1 anim-typewriter">'''+TEXT+'''</div>'''))
 
-def updateCheck(self, Version):
-    class UpdateChecker(object):
-
-      def __init__(self):
-          getMessage = self.getMessage
-          getVersion = self.getVersion
-
-      def getVersion(self, currentTag):
-          from urllib.request import urlopen
-          from lxml.etree import XML
-
-          url = self.URL
-          update = urlopen(url).read()
-          root = XML(update)
-          cur_version = root.find(".//"+currentTag)
-          current = cur_version.text
-          return current
-
-      def getMessage(self, messageTag):
-          from urllib.request import urlopen
-          from lxml.etree import XML
-
-          url = self.URL
-          update = urlopen(url).read()
-          root = XML(update)
-          mess = root.find(".//"+messageTag)
-          message = mess.text
-          return message
-
-    check = UpdateChecker()
-    check.URL = "https://raw.githubusercontent.com/helloW3c/Google-Colab-CloudTorrent/master/update.xml"
-    currentVersion = check.getVersion("currentVersion")
-    message = check.getMessage("message")
-
-    if Version != currentVersion:
-        from IPython.display import HTML
-
-        print("Script Update Checker: Version "+currentVersion+" "+message+" Your version: "+Version+"")
-        display(HTML('<div style="background-color: #4caf50!important;text-align: center;padding-top:-1px;padding-bottom: 9px;boder:1px"><h4 style="padding-top:5px"><a target="_blank" href="http://bit.ly/updateCscript" style="color: #fff!important;text-decoration: none;color: inherit;background-color:transparent;font-family: Segoe UI,Arial,sans-serif;font-weight: 400;font-size: 20px;">Open Latest Version</a></h4></div>'))
-        return True
-    else:
-        print("Script Update Checker: Your script is up to date")
-
 class LocalhostRun:
   def __init__(self,port,id=None,interval=30,retries=30):
     import os
@@ -455,32 +412,25 @@ class LocalhostRun:
         return oldAddr
       except:
         pass
-
-    self.connection=Popen(f"autossh -R 80:localhost:{self.port} {self.id}@ssh.localhost.run -o StrictHostKeyChecking=no -o ServerAliveInterval={self.interval} -o ServerAliveCountMax={self.retries}".split(), stdout=PIPE, stdin=PIPE)
-    #print("ssh -R 80:localhost:{self.port} {self.id}@ssh.localhost.run -o StrictHostKeyChecking=no -o ServerAliveInterval={self.interval} -o ServerAliveCountMax={self.retries}")
-	for _ in range(2):
-	self.connection=Popen(f”autossh -R 80:localhost:{self.port} {self.id}@ssh.localhost.run -o StrictHostKeyChecking=no -o ServerAliveInterval={self.interval} -o ServerAliveCountMax={self.retries}”.split(),
-	stdout=PIPE, stdin=PIPE, stderr=PIPE)
-	#print(“ssh -R 80:localhost:{self.port} {self.id}@ssh.localhost.run -o StrictHostKeyChecking=no -o ServerAliveInterval={self.interval} -o ServerAliveCountMax={self.retries}”)
-	try:
-	newAddr = re.findall(“http://(.*?.localhost.run)”, self.connection.stdout.readline().decode(“utf-8”))[0]
-	localhostOpenDB[str(self.port)] = newAddr
-	accessSettingFile(“localhostDB.json” , localhostOpenDB, v=False)
-	return newAddr
-	except:
-	outs, errs = self.connection.communicate(timeout=15)
-	self.connection.kill()
-	# print(outs)
-	# print(errs)
-	if re.search(r”Permission\sdenied\s\(publickey\)”, errs.decode(“utf-8”)):
-	os.system(“ssh-keygen -q -t rsa -N ” -f ~/.ssh/id_rsa”)
-	continue
-	raise Exception(errs.decode(“utf-8”))
-	break
-	accessSettingFile("localhostDB.json" , localhostOpenDB, v=False)
-      return newAddr
-    except:
-      raise Exception(self.connection.stdout.readline().decode("utf-8"))
+    for _ in range(2):
+      self.connection=Popen(f"autossh -R 80:localhost:{self.port} {self.id}@ssh.localhost.run -o StrictHostKeyChecking=no -o ServerAliveInterval={self.interval} -o ServerAliveCountMax={self.retries}".split(),
+        stdout=PIPE, stdin=PIPE, stderr=PIPE)
+      #print("ssh -R 80:localhost:{self.port} {self.id}@ssh.localhost.run -o StrictHostKeyChecking=no -o ServerAliveInterval={self.interval} -o ServerAliveCountMax={self.retries}")
+      try:
+        newAddr = re.findall("http://(.*?.localhost.run)", self.connection.stdout.readline().decode("utf-8"))[0]
+        localhostOpenDB[str(self.port)] = newAddr 
+        accessSettingFile("localhostDB.json" , localhostOpenDB, v=False)
+        return newAddr
+      except:
+        outs, errs = self.connection.communicate(timeout=15)
+        self.connection.kill()
+        # print(outs)
+        # print(errs)
+        if re.search(r"Permission\sdenied\s\(publickey\)", errs.decode("utf-8")):
+          os.system("ssh-keygen -q -t rsa -N '' -f ~/.ssh/id_rsa")
+          continue
+        raise Exception(errs.decode("utf-8"))
+      break
 
   def kill(self):
     self.connection.kill()
